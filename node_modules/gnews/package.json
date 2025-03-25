@@ -1,0 +1,19 @@
+{
+  "name": "gnews",
+  "version": "1.0.3",
+  "description": "Minimalistic package to asynchronously scrap data from Google News.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Google",
+    "News",
+    "scraper"
+  ],
+  "author": "Vladyslav Mokrousov",
+  "license": "MIT",
+  "dependencies": {
+    "rss-parser": "^3.8.0"
+  }
+}
