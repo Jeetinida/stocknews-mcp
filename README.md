@@ -45,6 +45,13 @@ npx -y @smithery/cli install @Jeetinida/stocknews-mcp --client claude
    npm start
    ```
 
+## Debug
+1. Inspector
+   You can inspect your MCP server using:
+   ```
+   npx @modelcontextprotocol/inspector
+   ```
+
 ## Usage 🛠️
 The MCP server provides the following tools:
 

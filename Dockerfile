@@ -25,4 +25,6 @@ COPY package.json package-lock.json ./
 RUN npm install --production --omit=dev
 COPY --from=build /app/build ./build
 
+EXPOSE 3333
 ENTRYPOINT ["node", "build/index.js"]
+

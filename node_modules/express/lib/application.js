@@ -14,18 +14,16 @@
  */
 
 var finalhandler = require('finalhandler');
-var methods = require('methods');
 var debug = require('debug')('express:application');
 var View = require('./view');
-var http = require('http');
+var http = require('node:http');
+var methods = require('./utils').methods;
 var compileETag = require('./utils').compileETag;
 var compileQueryParser = require('./utils').compileQueryParser;
 var compileTrust = require('./utils').compileTrust;
-var merge = require('utils-merge');
-var resolve = require('path').resolve;
+var resolve = require('node:path').resolve;
 var once = require('once')
 var Router = require('router');
-var setPrototypeOf = require('setprototypeof')
 
 /**
  * Module variables.
@@ -117,10 +115,10 @@ app.defaultConfiguration = function defaultConfiguration() {
     }
 
     // inherit protos
-    setPrototypeOf(this.request, parent.request)
-    setPrototypeOf(this.response, parent.response)
-    setPrototypeOf(this.engines, parent.engines)
-    setPrototypeOf(this.settings, parent.settings)
+    Object.setPrototypeOf(this.request, parent.request)
+    Object.setPrototypeOf(this.response, parent.response)
+    Object.setPrototypeOf(this.engines, parent.engines)
+    Object.setPrototypeOf(this.settings, parent.settings)
   });
 
   // setup locals
@@ -168,8 +166,8 @@ app.handle = function handle(req, res, callback) {
   res.req = req;
 
   // alter the prototypes
-  setPrototypeOf(req, this.request)
-  setPrototypeOf(res, this.response)
+  Object.setPrototypeOf(req, this.request)
+  Object.setPrototypeOf(res, this.response)
 
   // setup locals
   if (!res.locals) {
@@ -232,8 +230,8 @@ app.use = function use(fn) {
     router.use(path, function mounted_app(req, res, next) {
       var orig = req.app;
       fn.handle(req, res, function (err) {
-        setPrototypeOf(req, orig.request)
-        setPrototypeOf(res, orig.response)
+        Object.setPrototypeOf(req, orig.request)
+        Object.setPrototypeOf(res, orig.response)
         next(err);
       });
     });
@@ -470,8 +468,8 @@ app.disable = function disable(setting) {
  * Delegate `.VERB(...)` calls to `router.VERB(...)`.
  */
 
-methods.forEach(function(method){
-  app[method] = function(path){
+methods.forEach(function (method) {
+  app[method] = function (path) {
     if (method === 'get' && arguments.length === 1) {
       // app.get(setting)
       return this.set(path);
@@ -526,7 +524,6 @@ app.render = function render(name, options, callback) {
   var done = callback;
   var engines = this.engines;
   var opts = options;
-  var renderOptions = {};
   var view;
 
   // support callback function as second arg
@@ -535,16 +532,8 @@ app.render = function render(name, options, callback) {
     opts = {};
   }
 
-  // merge app.locals
-  merge(renderOptions, this.locals);
-
-  // merge options._locals
-  if (opts._locals) {
-    merge(renderOptions, opts._locals);
-  }
-
   // merge options
-  merge(renderOptions, opts);
+  var renderOptions = { ...this.locals, ...opts._locals, ...opts };
 
   // set .cache unless explicitly provided
   if (renderOptions.cache == null) {
@@ -594,8 +583,8 @@ app.render = function render(name, options, callback) {
  * and HTTPS server you may do so with the "http"
  * and "https" modules as shown here:
  *
- *    var http = require('http')
- *      , https = require('https')
+ *    var http = require('node:http')
+ *      , https = require('node:https')
  *      , express = require('express')
  *      , app = express();
  *
@@ -606,7 +595,7 @@ app.render = function render(name, options, callback) {
  * @public
  */
 
-app.listen = function listen () {
+app.listen = function listen() {
   var server = http.createServer(this)
   var args = Array.prototype.slice.call(arguments)
   if (typeof args[args.length - 1] === 'function') {
