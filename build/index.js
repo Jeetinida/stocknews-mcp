@@ -1,14 +1,14 @@
+import 'dotenv/config';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import axios from "axios";
 import { z } from "zod";
 import yahooFinance from "yahoo-finance2";
 import NewsAPI from "newsapi";
-// Add technicalindicators library
-import * as technicalIndicators from "technicalindicators";
+import { SMA, EMA, RSI, MACD, BollingerBands } from "./functions/technicalIndicator.js";
 const NWS_API_BASE = "https://api.weather.gov";
 const USER_AGENT = "weather-app/1.0";
-const NEWS_API_KEY = process.env.NEWS_API_KEY || "YOUR_NEWS_API_KEY";
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
 const newsapi = new NewsAPI(NEWS_API_KEY);
 // Initialize MCP Server
 const server = new McpServer({ name: "weather-stock", version: "1.0.0" });
@@ -173,10 +173,7 @@ server.tool("get-technical-indicators", "Calculate technical indicators for a st
         // Calculate the requested indicator
         switch (indicator) {
             case "sma": {
-                const smaValues = technicalIndicators.SMA.calculate({
-                    period: period,
-                    values: closingPrices,
-                });
+                const smaValues = SMA(closingPrices, period);
                 // Align dates with SMA values (SMA values start after period-1 days)
                 const smaResults = dates.slice(period - 1).map((date, i) => ({
                     date,
@@ -187,10 +184,7 @@ server.tool("get-technical-indicators", "Calculate technical indicators for a st
                 break;
             }
             case "ema": {
-                const emaValues = technicalIndicators.EMA.calculate({
-                    period: period,
-                    values: closingPrices,
-                });
+                const emaValues = EMA(closingPrices, period);
                 // Align dates with EMA values
                 const emaResults = dates.slice(period - 1).map((date, i) => ({
                     date,
@@ -201,10 +195,7 @@ server.tool("get-technical-indicators", "Calculate technical indicators for a st
                 break;
             }
             case "rsi": {
-                const rsiValues = technicalIndicators.RSI.calculate({
-                    period: period,
-                    values: closingPrices,
-                });
+                const rsiValues = RSI(closingPrices, period);
                 // Align dates with RSI values
                 const rsiResults = dates.slice(period).map((date, i) => ({
                     date,
@@ -226,20 +217,13 @@ server.tool("get-technical-indicators", "Calculate technical indicators for a st
                 const fastPeriod = 12;
                 const slowPeriod = 26;
                 const signalPeriod = 9;
-                const macdValues = technicalIndicators.MACD.calculate({
-                    fastPeriod,
-                    slowPeriod,
-                    signalPeriod,
-                    values: closingPrices,
-                    SimpleMAOscillator: false,
-                    SimpleMASignal: false
-                });
+                const macdValues = MACD(closingPrices, fastPeriod, slowPeriod, signalPeriod);
                 // Align dates with MACD values
                 const macdResults = dates.slice(slowPeriod + signalPeriod - 2).map((date, i) => ({
                     date,
-                    macd: macdValues[i].MACD,
-                    signal: macdValues[i].signal,
-                    histogram: macdValues[i].histogram
+                    macd: macdValues.macd[i],
+                    signal: macdValues.signal[i],
+                    histogram: macdValues.histogram[i]
                 }));
                 indicatorValues = macdResults;
                 result = `📊 MACD(${fastPeriod},${slowPeriod},${signalPeriod}) for ${symbol}:\n\n${macdResults.slice(-10).map(day => {
@@ -254,17 +238,13 @@ server.tool("get-technical-indicators", "Calculate technical indicators for a st
             }
             case "bollinger": {
                 const standardDeviation = 2;
-                const bbandsValues = technicalIndicators.BollingerBands.calculate({
-                    period: period,
-                    values: closingPrices,
-                    stdDev: standardDeviation,
-                });
+                const bbandsValues = BollingerBands(closingPrices, period, standardDeviation);
                 // Align dates with Bollinger Bands values
                 const bbandsResults = dates.slice(period - 1).map((date, i) => ({
                     date,
-                    upper: bbandsValues[i].upper,
-                    middle: bbandsValues[i].middle,
-                    lower: bbandsValues[i].lower,
+                    upper: bbandsValues.upper[i],
+                    middle: bbandsValues.middle[i],
+                    lower: bbandsValues.lower[i],
                     price: closingPrices[period - 1 + i]
                 }));
                 indicatorValues = bbandsResults;
@@ -314,66 +294,61 @@ server.tool("get-technical-analysis", "Get comprehensive technical analysis for 
         const latestPrice = closingPrices[closingPrices.length - 1];
         const previousPrice = closingPrices[closingPrices.length - 2];
         // Calculate various indicators
-        const sma20 = technicalIndicators.SMA.calculate({ period: 20, values: closingPrices }).pop() || 0;
-        const sma50 = technicalIndicators.SMA.calculate({ period: 50, values: closingPrices }).pop() || 0;
-        const sma200 = technicalIndicators.SMA.calculate({ period: 200, values: closingPrices }).pop() || 0;
-        const ema12 = technicalIndicators.EMA.calculate({ period: 12, values: closingPrices }).pop() || 0;
-        const ema26 = technicalIndicators.EMA.calculate({ period: 26, values: closingPrices }).pop() || 0;
-        const rsi14 = technicalIndicators.RSI.calculate({ period: 14, values: closingPrices }).pop() || 0;
-        const macdResult = technicalIndicators.MACD.calculate({
-            fastPeriod: 12,
-            slowPeriod: 26,
-            signalPeriod: 9,
-            values: closingPrices,
-            SimpleMAOscillator: false,
-            SimpleMASignal: false
-        }).pop();
-        const bbands = technicalIndicators.BollingerBands.calculate({
-            period: 20,
-            values: closingPrices,
-            stdDev: 2,
-        }).pop();
+        const sma20 = SMA(closingPrices, 20).pop();
+        const sma50 = SMA(closingPrices, 50).pop();
+        const sma200 = SMA(closingPrices, 200).pop();
+        const ema12 = EMA(closingPrices, 12).pop();
+        const ema26 = EMA(closingPrices, 26).pop();
+        const rsi14 = RSI(closingPrices, 14).pop();
+        const macdResult = MACD(closingPrices, 12, 26, 9);
+        const macd = macdResult.macd.pop();
+        const macdSignal = macdResult.signal?.pop();
+        const macdHistogram = macdResult.histogram?.pop();
+        const bbands = BollingerBands(closingPrices, 20, 2);
+        const bbandsUpper = bbands.upper.pop();
+        const bbandsMiddle = bbands.middle.pop();
+        const bbandsLower = bbands.lower.pop();
         // Analyze the trends
         let trendAnalysis = [];
         // Moving Average Analysis
-        if (latestPrice > sma20 && sma20 > sma50) {
+        if (sma20 !== undefined && sma50 !== undefined && latestPrice > sma20 && sma20 > sma50) {
             trendAnalysis.push("📈 Price is above SMA(20) and SMA(50), suggesting a positive trend.");
         }
-        else if (latestPrice < sma20 && sma20 < sma50) {
+        else if (sma20 !== undefined && sma50 !== undefined && latestPrice < sma20 && sma20 < sma50) {
             trendAnalysis.push("📉 Price is below SMA(20) and SMA(50), suggesting a negative trend.");
         }
-        if (sma50 > sma200) {
+        if ((sma50 ?? 0) > (sma200 ?? 0)) {
             trendAnalysis.push("📈 SMA(50) is above SMA(200), indicating a long-term uptrend (Golden Cross pattern).");
         }
-        else if (sma50 < sma200) {
+        else if ((sma50 ?? 0) < (sma200 ?? 0)) {
             trendAnalysis.push("📉 SMA(50) is below SMA(200), indicating a long-term downtrend (Death Cross pattern).");
         }
         // RSI Analysis
-        if (rsi14 > 70) {
+        if ((rsi14 ?? 0) > 70) {
             trendAnalysis.push("⚠️ RSI(14) is above 70, suggesting the stock may be overbought.");
         }
-        else if (rsi14 < 30) {
+        else if ((rsi14 ?? 0) < 30) {
             trendAnalysis.push("⚠️ RSI(14) is below 30, suggesting the stock may be oversold.");
         }
         else {
-            trendAnalysis.push(`✅ RSI(14) is at ${rsi14.toFixed(2)}, indicating neutral momentum.`);
+            trendAnalysis.push(`✅ RSI(14) is at ${(rsi14 ?? 0).toFixed(2)}, indicating neutral momentum.`);
         }
         // MACD Analysis
-        if (macdResult && macdResult.MACD > (macdResult.signal ?? 0)) {
+        if (macdResult && macdResult.macd > (macdResult.signal ?? 0)) {
             trendAnalysis.push("📈 MACD is above signal line, suggesting bullish momentum.");
         }
         else {
             trendAnalysis.push("📉 MACD is below signal line, suggesting bearish momentum.");
         }
         // Bollinger Bands Analysis
-        if (latestPrice > bbands.upper) {
+        if (latestPrice > bbandsUpper) {
             trendAnalysis.push("⚠️ Price is above the upper Bollinger Band, potentially indicating overbought conditions.");
         }
-        else if (latestPrice < bbands.lower) {
+        else if (latestPrice < bbandsLower) {
             trendAnalysis.push("⚠️ Price is below the lower Bollinger Band, potentially indicating oversold conditions.");
         }
         else {
-            const bandWidth = ((bbands.upper - bbands.lower) / bbands.middle) * 100;
+            const bandWidth = bbandsUpper - bbandsLower;
             if (bandWidth < 10) {
                 trendAnalysis.push("📊 Bollinger Bands are contracting, suggesting a potential upcoming volatility increase.");
             }
@@ -426,17 +401,17 @@ server.tool("get-technical-analysis", "Get comprehensive technical analysis for 
         analysisText += `Daily Change: ${((latestPrice - previousPrice) / previousPrice * 100).toFixed(2)}%\n\n`;
         // Key Indicators
         analysisText += `Key Indicators:\n`;
-        analysisText += `• SMA(20): $${sma20.toFixed(2)}\n`;
-        analysisText += `• SMA(50): $${sma50.toFixed(2)}\n`;
-        analysisText += `• SMA(200): $${sma200.toFixed(2)}\n`;
-        analysisText += `• RSI(14): ${rsi14.toFixed(2)}\n`;
-        analysisText += `• MACD: ${(macdResult?.MACD ?? 0).toFixed(2)}\n`;
-        analysisText += `• MACD Signal: ${macdResult?.signal?.toFixed(2) ?? "N/A"}\n`;
-        analysisText += `• MACD Histogram: ${(macdResult?.histogram ?? 0).toFixed(2)}\n`;
+        analysisText += `• SMA(20): $${(sma20 ?? 0).toFixed(2)}\n`;
+        analysisText += `• SMA(50): $${(sma50 ?? 0).toFixed(2)}\n`;
+        analysisText += `• SMA(200): $${(sma200 ?? 0).toFixed(2)}\n`;
+        analysisText += `• RSI(14): ${(rsi14 ?? 0).toFixed(2)}\n`;
+        analysisText += `• MACD: ${(macd ?? 0).toFixed(2)}\n`;
+        analysisText += `• MACD Signal: ${macdSignal?.toFixed(2) ?? "N/A"}\n`;
+        analysisText += `• MACD Histogram: ${(macdHistogram ?? 0).toFixed(2)}\n`;
         if (bbands) {
-            analysisText += `• Bollinger Upper: $${bbands.upper.toFixed(2)}\n`;
-            analysisText += `• Bollinger Middle: $${bbands.middle.toFixed(2)}\n`;
-            analysisText += `• Bollinger Lower: $${bbands.lower.toFixed(2)}\n\n`;
+            analysisText += `• Bollinger Upper: $${(bbandsUpper ?? 0).toFixed(2)}\n`;
+            analysisText += `• Bollinger Middle: $${(bbandsMiddle ?? 0).toFixed(2)}\n`;
+            analysisText += `• Bollinger Lower: $${(bbandsLower ?? 0).toFixed(2)}\n\n`;
         }
         else {
             analysisText += `• Bollinger Bands: Data unavailable\n\n`;
