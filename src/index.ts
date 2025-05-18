@@ -9,7 +9,7 @@ import * as technicalIndicators from "technicalindicators";
 
 const NWS_API_BASE = "https://api.weather.gov";
 const USER_AGENT = "weather-app/1.0";
-const NEWS_API_KEY = "c8e954044ee64a53a074a37e55efc2f7";
+const NEWS_API_KEY =  process.env.NEWS_API_KEY || "YOUR_NEWS_API_KEY";
 const newsapi = new NewsAPI(NEWS_API_KEY);
 
 // Initialize MCP Server

@@ -8,7 +8,7 @@ import NewsAPI from "newsapi";
 import * as technicalIndicators from "technicalindicators";
 const NWS_API_BASE = "https://api.weather.gov";
 const USER_AGENT = "weather-app/1.0";
-const NEWS_API_KEY =  process.env.NEWS_API_KEY || "YOUR_NEWS_API_KEY"; // Replace with your NewsAPI key
+const NEWS_API_KEY = process.env.NEWS_API_KEY || "YOUR_NEWS_API_KEY";
 const newsapi = new NewsAPI(NEWS_API_KEY);
 // Initialize MCP Server
 const server = new McpServer({ name: "weather-stock", version: "1.0.0" });
