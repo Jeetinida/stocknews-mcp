@@ -1,5 +1,7 @@
 # Weather & Stock MCP Server 🌦️📉
 
+[![smithery badge](https://smithery.ai/badge/@Jeetinida/stocknews-mcp)](https://smithery.ai/server/@Jeetinida/stocknews-mcp)
+
 This project is an **MCP (Model Context Protocol) server** that provides **weather alerts, forecasts, stock prices, historical data, and news** using various APIs.
 
 ## Features 🚀
@@ -9,6 +11,14 @@ This project is an **MCP (Model Context Protocol) server** that provides **weath
 - 🌦️ Fetch **weather alerts and forecasts** using the National Weather Service API
 
 ## Installation & Setup ⚙️
+
+### Installing via Smithery
+
+To install Weather & Stock Data Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@Jeetinida/stocknews-mcp):
+
+```bash
+npx -y @smithery/cli install @Jeetinida/stocknews-mcp --client claude
+```
 
 ### Prerequisites
 - **Node.js** (v18 or higher)
