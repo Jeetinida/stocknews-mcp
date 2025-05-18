@@ -25,6 +25,4 @@ COPY package.json package-lock.json ./
 RUN npm install --production --omit=dev
 COPY --from=build /app/build ./build
 
-EXPOSE 3000
-
 ENTRYPOINT ["node", "build/index.js"]
