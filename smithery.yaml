@@ -1,13 +1,13 @@
-# Smithery configuration file: https://smithery.ai/docs/build/project-config
-
+runtime: "container"
+build:
+  dockerfile : "Dockerfile"
+  dockerBuildPath: "."
 startCommand:
-  type: stdio
-  commandFunction:
-    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
-    |-
-    (config) => ({ command: 'node', args: ['build/index.js'], env: {} })
-  configSchema:
-    # JSON Schema defining the configuration options for the MCP.
-    type: object
-    properties: {}
-  exampleConfig: {}
+  type : "http"
+  configScehma:
+    type: "object"
+    properties:
+      NEWS_API_KEY:
+        type: "string"
+        description: "API key for the news service"
+    required: ["NEWS_API_KEY"]
