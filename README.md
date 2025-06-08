@@ -13,7 +13,7 @@ This project is an **MCP (Model Context Protocol) server** that provides **weath
 ## Installation & Setup ⚙️
 
 ### Installing via Smithery
-
+This MCP Server uses latest StreamableHTTP to server MCP client request.
 To install Weather & Stock Data Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@Jeetinida/stocknews-mcp):
 
 ```bash
@@ -86,6 +86,18 @@ The MCP server provides the following tools:
     "endDate": "2024-03-10"
   }
 }
+```
+
+## Docker
+Dockerfile is attached with the project, you will have to set your NEWS_API_KEY and run the following docker command:
+Docker build:
+```
+  docker build -t weather-mcp .
+```
+
+Docker run:
+```
+  docker run -d --name {CONTAINER_NAME} --env NEWS_API_KEY={news_api_key} -p 3333:3333 weather-mcp 
 ```
 
 ## Contributing 🤝

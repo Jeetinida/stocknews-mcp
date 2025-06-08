@@ -41,18 +41,6 @@ function formatAlert({ properties }) {
  * Keep all your tool definitions in this file so the entry‑point stays tiny.
  */
 export function registerTools(server) {
-    /* ───── Weather: alerts ─────────────────────────────────────────────── */
-    server.tool("get-alerts", "Get weather alerts for a U.S. state", { state: z.string().length(2).describe("Two‑letter state code, e.g. CA") }, async ({ state }) => {
-        const url = `${NWS_API_BASE}/alerts?area=${state.toUpperCase()}`;
-        const data = await fetchData(url, { "User-Agent": USER_AGENT });
-        const reply = !data?.features?.length
-            ? `✅ No active alerts for ${state.toUpperCase()}`
-            : `Active Alerts for ${state.toUpperCase()}:\n\n${data.features.map(formatAlert).join("\n")}`;
-        return {
-            content: [{ type: "text", text: reply }],
-            structuredContent: {}
-        };
-    });
     /* ───── Stock: current price ─────────────────────────────────────────── */
     server.tool("get-stock-price", "Fetch the current price for a ticker", { symbol: z.string().describe("Ticker, e.g. AAPL") }, async ({ symbol }) => {
         try {

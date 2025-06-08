@@ -21,7 +21,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "gnews": "^1.0.3",
-    "mcp-remote": "^0.1.5",
+    "mcp-remote": "^0.1.13",
     "newsapi": "^2.4.1",
     "technicalindicators": "^1.0.2",
     "yahoo-finance2": "^2.13.3",
