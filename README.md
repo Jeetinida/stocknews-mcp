@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/jeetinida-stocknews-mcp-badge.png)](https://mseep.ai/app/jeetinida-stocknews-mcp)
+
 # Weather & Stock MCP Server 🌦️📉
 
 [![smithery badge](https://smithery.ai/badge/@Jeetinida/stocknews-mcp)](https://smithery.ai/server/@Jeetinida/stocknews-mcp)
